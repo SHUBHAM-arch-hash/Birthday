@@ -1,30 +1,326 @@
-const rupee='\u20B9';
-const defaultState={name:'Yash',balance:2450,round:8,games:[{name:'Neon Knockout',date:'Today, 9:12 PM',result:'Won '+rupee+'360',win:true},{name:'Midnight Royals',date:'Yesterday, 10:42 PM',result:'Folded',win:false},{name:'Ace Society',date:'29 Aug, 8:08 PM',result:'Won '+rupee+'180',win:true}],transactions:[{title:'Welcome game credits',date:'Today, 8:30 PM',amount:'+'+rupee+'2,000',type:'add'},{title:'Joined Neon Knockout',date:'Today, 9:10 PM',amount:'-'+rupee+'100',type:''},{title:'Won Neon Knockout',date:'Today, 9:12 PM',amount:'+'+rupee+'360',type:'add'}],notices:[{title:'Welcome to Neon Night',text:'Your player profile is ready. Find a table and make your opening move.',icon:'*',unread:true},{title:'Weekend tables are live',text:'New low-stakes and private tables are open now.',icon:'\u2663',unread:true},{title:'Payment notice',text:'QR payments in this prototype are simulated only.',icon:'\u25c8',unread:false}]};
-const tables=[{id:1,name:'Neon Knockout',subtitle:'Fast cards. Big energy.',buyIn:100,players:'4 / 6',stake:rupee+'20 - '+rupee+'100',status:'LIVE',accent:'#7d55e8',level:'low'},{id:2,name:'Midnight Royals',subtitle:'For the bold after dark.',buyIn:250,players:'5 / 6',stake:rupee+'50 - '+rupee+'250',status:'LIVE',accent:'#3bd8d2',level:'mid'},{id:3,name:'Ace Society',subtitle:'A seat at the premium table.',buyIn:500,players:'3 / 6',stake:rupee+'100 - '+rupee+'500',status:'WAITING',accent:'#fb766d',level:'mid'},{id:4,name:'Pocket Rockets',subtitle:'Quick rounds, friendly stakes.',buyIn:50,players:'2 / 6',stake:rupee+'10 - '+rupee+'50',status:'WAITING',accent:'#667be8',level:'low'},{id:5,name:'Velvet Room',subtitle:'A little quieter. Still electric.',buyIn:150,players:'4 / 6',stake:rupee+'25 - '+rupee+'150',status:'LIVE',accent:'#d65bd0',level:'mid'},{id:6,name:'Sunday Shuffle',subtitle:'Your friends, your rules.',buyIn:100,players:'Private',stake:rupee+'20 - '+rupee+'100',status:'PRIVATE',accent:'#efa85d',level:'private'}];
-let state=JSON.parse(localStorage.getItem('neon-patti-state')||'null')||structuredClone(defaultState);if(typeof state.loggedIn!=='boolean')state.loggedIn=false;let currentTable=tables[1];let selectedTable=tables[1];let seen=false;let pot=450;let gameOver=false;let gameTimer;
-const money=n=>rupee+Number(n).toLocaleString('en-IN'),byId=id=>document.getElementById(id);
-byId('confirm-payment').innerHTML='Submit payment reference <b>&rarr;</b>';
-function save(){localStorage.setItem('neon-patti-state',JSON.stringify(state))}
-function refreshChrome(){document.querySelectorAll('#balance,#wallet-balance').forEach(el=>el.textContent=money(state.balance));document.querySelectorAll('#header-name,#side-name').forEach(el=>el.textContent=state.name);document.querySelectorAll('#top-avatar,#profile-avatar').forEach(el=>el.textContent=state.name[0].toUpperCase());byId('profile-name').value=state.name;byId('notice-dot').style.display=state.notices.some(n=>n.unread)?'block':'none'}
-function tableTemplate(t){return `<button class="table-card" style="--accent:${t.accent}" data-details="${t.id}"><div class="table-head"><div><h3>${t.name}</h3><p>${t.subtitle}</p></div><span class="table-status ${t.status==='WAITING'?'waiting':''}">${t.status}</span></div><div class="seat-visual"><i></i></div><div class="table-meta"><span>${t.players} players</span><span>${t.stake}</span></div></button>`}
-function renderTables(){byId('featured-tables').innerHTML=tables.slice(0,3).map(tableTemplate).join('');filterTables()}
-function filterTables(){const query=byId('table-search').value.toLowerCase(),active=document.querySelector('.filter.active').dataset.filter;byId('lobby-tables').innerHTML=tables.filter(t=>(active==='all'||t.level===active)&&(t.name.toLowerCase().includes(query)||t.subtitle.toLowerCase().includes(query))).map(tableTemplate).join('')||'<p class="empty">No table found. Try another filter.</p>'}
-function renderTransactions(){byId('transactions').innerHTML=state.transactions.map(t=>`<div class="transaction"><span class="transaction-icon">${t.type==='add'?'&darr;':'&#9824;'}</span><div><b>${t.title}</b><small>${t.date}</small></div><span class="amount ${t.type}">${t.amount}</span></div>`).join('')}
-function renderHistory(){byId('history-list').innerHTML=state.games.map(g=>`<div class="history-row"><span class="transaction-icon">&#9824;</span><div><b>${g.name}</b><small>${g.date}</small></div><span class="result ${g.win?'':'loss'}">${g.result}</span></div>`).join('');const wins=state.games.filter(g=>g.win).length;byId('games-played').textContent=state.games.length;byId('games-won').textContent=wins;byId('win-rate').textContent=Math.round(wins/state.games.length*100)+'%'}
-function renderNotices(){byId('notification-list').innerHTML=state.notices.map(n=>`<div class="notice ${n.unread?'unread':''}"><span class="notice-icon">${n.icon}</span><div><b>${n.title}</b><small>${n.text}</small></div></div>`).join('')}
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.screen===id));if(id==='notifications'){state.notices.forEach(n=>n.unread=false);save();refreshChrome()}window.scrollTo({top:0,behavior:'smooth'})}
-function toast(msg){const el=byId('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2800)}
-function openModal(id){byId(id).classList.add('show')}function closeModals(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'))}
-function syncAuth(){byId('auth-gate').classList.toggle('hidden',state.loggedIn)}
-function viewTable(id){selectedTable=tables.find(t=>t.id===Number(id));if(!selectedTable)return;byId('table-detail-name').textContent=selectedTable.name;byId('table-detail-copy').textContent=selectedTable.subtitle;byId('table-detail-buyin').textContent=money(selectedTable.buyIn);byId('table-detail-players').textContent=selectedTable.players;openModal('table-modal')}
-function startSessionTimer(){clearInterval(gameTimer);let seconds=60;let label=byId('session-timer');if(!label){byId('round-status').insertAdjacentHTML('afterend','<small class="session-timer" id="session-timer"></small>');label=byId('session-timer')}const update=()=>{label.textContent=`TURN TIMER - 00:${String(seconds).padStart(2,'0')}`;seconds=seconds>0?seconds-1:60};update();gameTimer=setInterval(update,1000)}
-function addSupportForm(){if(byId('issue-text'))return;byId('support').insertAdjacentHTML('beforeend','<div class="issue-box"><span class="eyebrow">REPORT AN ISSUE</span><h2>Something not right?</h2><textarea id="issue-text" placeholder="Tell us what happened..."></textarea><button class="primary-btn" id="submit-issue">Send issue report <b>&rarr;</b></button></div>')}
-function yourCards(){const cards=seen?[['A','\u2665','red'],['A','\u2666','red'],['K','\u2665','red']]:[['?','',''],['?','',''],['?','','']];byId('your-cards').innerHTML=cards.map(c=>`<span class="playing-card ${c[2]}"><b>${c[0]}</b><small>${c[1]}</small></span>`).join('')}
-function setGameActionLabels(){byId('see-btn').disabled=seen;byId('see-btn').innerHTML=seen?'&#10003; Cards seen':'<span>&#9673;</span> See cards';byId('call-btn').innerHTML=`<span>${rupee}</span> ${seen?'Call':'Blind'} &middot; ${money(seen?100:50)}`;byId('raise-btn').innerHTML=seen?'<span>&#9733;</span> Show cards':'<span>&uarr;</span> Raise'}
-function joinTable(id){const t=tables.find(x=>x.id===Number(id));if(state.balance<t.buyIn){showScreen('wallet');toast('Not enough credits - add some to join.');return}currentTable=t;state.balance-=t.buyIn;state.transactions.unshift({title:`Joined ${t.name}`,date:'Just now',amount:`-${money(t.buyIn)}`,type:''});save();refreshChrome();renderTransactions();byId('game-table-name').textContent=t.name;byId('round-status').textContent=`ROUND ${String(state.round).padStart(2,'0')} \u00b7 ANTE ${money(Math.max(10,t.buyIn/5))}`;byId('your-status').textContent=`Blind \u00b7 ${money(state.balance)}`;pot=t.buyIn*3;byId('pot-value').textContent=money(pot);seen=false;gameOver=false;yourCards();setGameActionLabels();startSessionTimer();byId('game-message').textContent=`Welcome to ${t.name}. Your move, ${state.name}.`;byId('game-actions').style.display='flex';showScreen('game')}
-function addWager(amount,message){if(state.balance<amount){toast('Add more demo credits to continue.');return false}state.balance-=amount;pot+=amount*2;byId('pot-value').textContent=money(pot);byId('your-status').textContent=`${seen?'Seen':'Blind'} \u00b7 ${money(state.balance)}`;byId('game-message').textContent=message;save();refreshChrome();return true}
-function finishGame(won){if(gameOver)return;gameOver=true;const payout=won?Math.round(pot*1.6):0;if(won){state.balance+=payout;state.transactions.unshift({title:`Won ${currentTable.name}`,date:'Just now',amount:`+${money(payout)}`,type:'add'});state.games.unshift({name:currentTable.name,date:'Just now',result:`Won ${money(payout)}`,win:true});byId('game-message').textContent=`Three of a kind! You won ${money(payout)}.`;toast(`You won ${money(payout)}!`)}else{state.games.unshift({name:currentTable.name,date:'Just now',result:'Folded',win:false});byId('game-message').textContent='You folded this hand. The next round is calling.';toast('Hand folded. Better cards next round.')};state.round++;save();refreshChrome();renderTransactions();renderHistory();byId('game-actions').style.display='none'}
-document.addEventListener('click',event=>{const e=event.target,screen=e.closest('[data-screen]'),join=e.closest('[data-join]');if(screen)showScreen(screen.dataset.screen);if(join)joinTable(join.dataset.join);if(e.closest('#add-credits'))openModal('payment-modal');if(e.closest('#create-table'))openModal('private-modal');if(e.closest('[data-close-modal]')||e.classList.contains('modal'))closeModals();if(e.closest('#see-btn')&&!seen){seen=true;yourCards();setGameActionLabels();byId('your-status').textContent=`Seen \u00b7 ${money(state.balance)}`;toast('Cards seen - a strong pair of aces.')}if(e.closest('#call-btn')&&!gameOver){if(addWager(seen?100:50,'Aarav has called. Rohan is thinking...'))setTimeout(()=>{if(!gameOver)byId('game-message').textContent='Your move again. Raise or show your cards.'},850)}if(e.closest('#raise-btn')&&!gameOver){if(seen){finishGame(true)}else if(addWager(150,'Big move! Maya folds. See your cards, then decide the showdown.'))toast('Raise placed. Time to see your cards.')}if(e.closest('#fold-btn'))finishGame(false);if(e.closest('#sound-toggle')){const button=byId('sound-toggle');button.textContent=button.textContent.includes('on')?'\u266a Sound off':'\u266a Sound on'}if(e.closest('#confirm-payment')){state.balance+=500;state.transactions.unshift({title:'QR payment confirmed (demo)',date:'Just now',amount:'+'+money(500),type:'add'});save();refreshChrome();renderTransactions();closeModals();toast(money(500)+' demo credits added to your wallet.')}if(e.closest('#confirm-private')){const name=byId('private-name').value.trim()||'Private Neon Table';tables.unshift({id:Date.now(),name,subtitle:'A private game for your crew.',buyIn:100,players:'1 / 6',stake:rupee+'20 - '+rupee+'100',status:'PRIVATE',accent:'#d65bd0',level:'private'});closeModals();renderTables();showScreen('lobby');toast(`Table created! Invite code: NP-${String(Date.now()).slice(-4)}.`)}if(e.closest('#save-profile')){const name=byId('profile-name').value.trim();if(name){state.name=name;save();refreshChrome();toast('Your player card has been updated.')}}if(e.closest('#reset-app')){localStorage.removeItem('neon-patti-state');state=structuredClone(defaultState);refreshChrome();renderTransactions();renderHistory();renderNotices();toast('Demo data has been reset.')}});
-document.querySelectorAll('.filter').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('.filter').forEach(item=>item.classList.remove('active'));button.classList.add('active');filterTables()}));byId('table-search').addEventListener('input',filterTables);byId('header-date').textContent=new Intl.DateTimeFormat('en-IN',{weekday:'long',day:'2-digit',month:'long'}).format(new Date()).toUpperCase();renderTables();renderTransactions();renderHistory();renderNotices();refreshChrome();yourCards();addSupportForm();syncAuth();
-document.addEventListener('click',event=>{const e=event.target;if(e.closest('[data-details]'))viewTable(e.closest('[data-details]').dataset.details);if(e.closest('#table-modal-join')){closeModals();joinTable(selectedTable.id)}if(e.closest('[data-auth-mode]')){document.querySelectorAll('.auth-tab').forEach(tab=>tab.classList.toggle('active',tab===e.closest('[data-auth-mode]')));byId('auth-name').focus()}if(e.closest('#send-otp')){if(!byId('auth-identity').value.trim()){toast('Enter your mobile number or email first.');return}byId('otp-step').classList.add('show');byId('auth-otp').focus();toast('Demo OTP is 123456.')}if(e.closest('#verify-otp')){if(byId('auth-otp').value!=='123456'){toast('Use demo OTP 123456.');return}const name=byId('auth-name').value.trim();if(!name){toast('Add a display name to continue.');return}state.name=name;state.loggedIn=true;save();refreshChrome();syncAuth();showScreen('home');toast('Welcome to Neon Night, '+name+'!')}if(e.closest('#submit-issue')){const issue=byId('issue-text').value.trim();if(!issue){toast('Describe the issue before sending.');return}state.notices.unshift({title:'Issue report received (demo)',text:'Your local support report is recorded in this prototype.',icon:'?',unread:true});byId('issue-text').value='';save();renderNotices();refreshChrome();toast('Issue report saved locally.')}});
-document.addEventListener('click',event=>{const e=event.target;if(e.closest('#confirm-payment')){event.stopImmediatePropagation();const reference=byId('payment-reference').value.trim()||'No reference provided';state.transactions.unshift({title:'Payment reference submitted (demo)',date:'Just now - '+reference,amount:'Pending',type:'pending'});save();renderTransactions();closeModals();toast('Payment reference submitted for verification.')}if(e.closest('#reset-app')){event.stopImmediatePropagation();localStorage.removeItem('neon-patti-state');state=structuredClone(defaultState);state.loggedIn=false;refreshChrome();renderTransactions();renderHistory();renderNotices();syncAuth();toast('Demo data has been reset.')}},true);
+const particleLayer = document.getElementById('particle-layer');
+const scene = document.querySelector('.opening-scene');
+const bookStage = document.querySelector('.storybook-stage');
+const book = document.querySelector('.storybook');
+const bookArtwork = document.querySelector('.book-artwork');
+const bookTransformation = document.querySelector('.book-transformation');
+const openingCover = document.querySelector('.opening-cover');
+const openPageSpread = document.querySelector('.open-page-spread');
+const pageLight = document.querySelector('.page-light');
+const pageFlutters = document.querySelectorAll('.page-flutter');
+const cinematicFrame = document.getElementById('cinematic-frame');
+const storyVideo = document.getElementById('story-video');
+const enableSoundButton = document.getElementById('enable-sound');
+const surpriseReveal = document.getElementById('surprise-reveal');
+const openSurpriseButton = document.getElementById('open-surprise');
+const birthdayLetter = document.getElementById('birthday-letter');
+const parchmentScroll = document.querySelector('.parchment-scroll');
+const closeLetterButton = document.getElementById('close-letter');
+const birthdaySong = document.getElementById('birthday-song');
+const startButton = document.getElementById('start-journey');
+const chapterMessage = document.getElementById('chapter-message');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let audioContext;
+let journeyStarted = false;
+let bookFloatTween;
+let journeyTimeline;
+let blockedMedia;
+let surpriseOpened = false;
+
+for (let index = 0; index < 43; index += 1) {
+  const particle = document.createElement('span');
+  particle.className = 'particle';
+  particle.style.setProperty('--size', `${1 + Math.random() * 3}px`);
+  particle.style.setProperty('--left', `${4 + Math.random() * 92}%`);
+  particle.style.setProperty('--top', `${18 + Math.random() * 67}%`);
+  particle.style.setProperty('--opacity', `${0.23 + Math.random() * 0.65}`);
+  particle.style.setProperty('--duration', `${4.5 + Math.random() * 5}s`);
+  particle.style.setProperty('--delay', `${-Math.random() * 8}s`);
+  particle.style.setProperty('--drift', `${-22 + Math.random() * 44}px`);
+  particleLayer.appendChild(particle);
+}
+
+function finishTransformation() {
+  window.dispatchEvent(new CustomEvent('birthday:story-start'));
+}
+
+function showEnableSound(media) {
+  blockedMedia = media;
+  enableSoundButton.hidden = false;
+}
+
+function playStoryVideo() {
+  storyVideo.currentTime = 0;
+  storyVideo.muted = false;
+  storyVideo.volume = 1;
+  storyVideo.play().catch(() => showEnableSound(storyVideo));
+}
+
+function getAudioContext() {
+  if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioContext.state === 'suspended') audioContext.resume();
+  return audioContext;
+}
+
+function bell(context, frequency, start, duration, volume) {
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(frequency, start);
+  gain.gain.setValueAtTime(.0001, start);
+  gain.gain.exponentialRampToValueAtTime(volume, start + .012);
+  gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+  oscillator.connect(gain).connect(context.destination);
+  oscillator.start(start);
+  oscillator.stop(start + duration + .04);
+}
+
+function softNoise(context, start, duration, volume) {
+  const frames = Math.floor(context.sampleRate * duration);
+  const buffer = context.createBuffer(1, frames, context.sampleRate);
+  const samples = buffer.getChannelData(0);
+  for (let index = 0; index < frames; index += 1) samples[index] = (Math.random() * 2 - 1) * (1 - index / frames);
+  const source = context.createBufferSource();
+  const filter = context.createBiquadFilter();
+  const gain = context.createGain();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(1700, start);
+  filter.frequency.exponentialRampToValueAtTime(310, start + duration);
+  gain.gain.setValueAtTime(.0001, start);
+  gain.gain.exponentialRampToValueAtTime(volume, start + .035);
+  gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+  source.buffer = buffer;
+  source.connect(filter).connect(gain).connect(context.destination);
+  source.start(start);
+}
+
+async function playLocalOrFallback(path, fallback) {
+  try {
+    const response = await fetch(path, { cache: 'force-cache' });
+    if (!response.ok) throw new Error('Audio asset unavailable');
+    const blob = await response.blob();
+    const audio = new Audio(URL.createObjectURL(blob));
+    audio.volume = .46;
+    await audio.play();
+    audio.addEventListener('ended', () => URL.revokeObjectURL(audio.src), { once: true });
+  } catch (_) {
+    fallback();
+  }
+}
+
+function playMagicalClick() {
+  const context = getAudioContext();
+  const now = context.currentTime;
+  bell(context, 783.99, now, .9, .1);
+  bell(context, 1046.5, now + .08, 1.05, .075);
+  bell(context, 1318.51, now + .17, 1.2, .05);
+  softNoise(context, now, .42, .018);
+}
+
+function playPageTurn() {
+  const context = getAudioContext();
+  const now = context.currentTime;
+  softNoise(context, now, .5, .032);
+  bell(context, 523.25, now + .12, .58, .028);
+}
+
+function burstParticles() {
+  const bounds = bookStage.getBoundingClientRect();
+  for (let index = 0; index < 28; index += 1) {
+    const sparkle = document.createElement('span');
+    sparkle.className = 'burst-particle';
+    sparkle.style.left = `${bounds.left + bounds.width * (.2 + Math.random() * .6)}px`;
+    sparkle.style.top = `${bounds.top + bounds.height * (.25 + Math.random() * .5)}px`;
+    sparkle.style.setProperty('--x', `${-160 + Math.random() * 320}px`);
+    sparkle.style.setProperty('--y', `${-135 + Math.random() * 175}px`);
+    sparkle.style.setProperty('--delay', `${Math.random() * .1}s`);
+    document.body.appendChild(sparkle);
+    sparkle.addEventListener('animationend', () => sparkle.remove());
+  }
+}
+
+function startJourney() {
+  if (journeyStarted) return;
+  journeyStarted = true;
+  startButton.disabled = true;
+  startButton.setAttribute('aria-disabled', 'true');
+  startButton.classList.add('is-activated');
+  burstParticles();
+  playStoryVideo();
+  bookFloatTween?.kill();
+
+  if (!window.gsap || reduceMotion) {
+    document.querySelector('.opening-copy').style.opacity = '0';
+    startButton.style.opacity = '0';
+    bookStage.style.opacity = '0';
+    cinematicFrame.style.visibility = 'visible';
+    cinematicFrame.style.opacity = '1';
+    cinematicFrame.style.transform = 'translate(-50%, -50%) scale(1)';
+    playStoryVideo();
+    window.setTimeout(finishTransformation, 150);
+    return;
+  }
+
+  try {
+    journeyTimeline = gsap.timeline({ defaults: { overwrite: 'auto' } });
+    journeyTimeline
+      .to(startButton, { scale: .96, duration: .14, yoyo: true, repeat: 1, ease: 'power1.inOut' })
+      .to(bookStage, { scale: 1.07, yPercent: -7, duration: .66, ease: 'power2.out' }, 0)
+      .to(book, { rotationX: 3, rotationY: -11, rotationZ: -1, duration: .74, ease: 'sine.inOut' }, .1)
+      .to('.opening-copy', { autoAlpha: 0, y: -14, duration: .46, ease: 'power2.in' }, .26)
+      .to(startButton, { autoAlpha: 0, y: 12, duration: .42, ease: 'power2.in' }, .33)
+      .to(bookArtwork, { autoAlpha: 0, duration: .18, ease: 'none' }, .58)
+      .set(bookTransformation, { autoAlpha: 1 }, .59)
+      .to(pageLight, { opacity: 1, duration: .78, ease: 'sine.out' }, .62)
+      .to(openPageSpread, { autoAlpha: 1, scale: 1, duration: .62, ease: 'power2.out' }, .67)
+      .to(openingCover, { rotationY: -142, duration: 1.28, ease: 'power2.inOut' }, .72)
+      .to(pageFlutters[0], { rotationY: -168, duration: .54, ease: 'power1.inOut' }, 1.2)
+      .to(pageFlutters[1], { rotationY: -166, duration: .5, ease: 'power1.inOut' }, 1.43)
+      .call(burstParticles, [], 1.12)
+      .to(bookTransformation, { scale: 1.18, yPercent: -5, duration: .64, ease: 'power2.in' }, 1.58)
+      .set(cinematicFrame, { autoAlpha: 1 }, 1.83)
+      .to(cinematicFrame, { scale: 1, duration: .82, ease: 'power3.out' }, 1.83)
+      .to([bookStage, bookTransformation], { autoAlpha: 0, duration: .45, ease: 'power2.in' }, 2.23)
+      .call(finishTransformation, [], 2.67);
+  } catch (_) {
+    bookStage.style.opacity = '0';
+    cinematicFrame.style.visibility = 'visible';
+    cinematicFrame.style.opacity = '1';
+    cinematicFrame.style.transform = 'translate(-50%, -50%) scale(1)';
+    playStoryVideo();
+    finishTransformation();
+  }
+}
+
+function showSurpriseReveal() {
+  if (surpriseOpened) return;
+  surpriseReveal.hidden = false;
+  burstParticles();
+  if (!window.gsap || reduceMotion) {
+    cinematicFrame.style.opacity = '0';
+    surpriseReveal.style.opacity = '1';
+    return;
+  }
+  gsap.timeline()
+    .to(cinematicFrame, { autoAlpha: 0, scale: .94, duration: .65, ease: 'power2.in' })
+    .fromTo(surpriseReveal, { autoAlpha: 0, scale: .82 }, { autoAlpha: 1, scale: 1, duration: .78, ease: 'back.out(1.25)' }, '<.2');
+}
+
+function openBirthdaySurprise() {
+  if (surpriseOpened) return;
+  surpriseOpened = true;
+  birthdaySong.pause();
+  birthdaySong.currentTime = 0;
+  birthdaySong.muted = false;
+  birthdaySong.volume = 1;
+  birthdaySong.play().catch(() => showEnableSound(birthdaySong));
+  birthdayLetter.hidden = false;
+  if (!window.gsap || reduceMotion) {
+    surpriseReveal.style.opacity = '0';
+    birthdayLetter.style.opacity = '1';
+    return;
+  }
+  gsap.timeline()
+    .to(surpriseReveal, { autoAlpha: 0, scale: .92, duration: .3, ease: 'power2.in' })
+    .fromTo(birthdayLetter, { autoAlpha: 0 }, { autoAlpha: 1, duration: .25 }, '<.1')
+    .fromTo(parchmentScroll, { scaleX: .08, scaleY: .18, rotationX: 16, autoAlpha: 0 }, { scaleX: 1, scaleY: 1, rotationX: 0, autoAlpha: 1, duration: 1.15, ease: 'power3.out' }, '<')
+    .fromTo('.letter-copy', { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: .7, ease: 'power2.out' }, '-=.22');
+}
+
+function resetLandingState() {
+  birthdaySong.pause();
+  birthdaySong.currentTime = 0;
+  storyVideo.pause();
+  storyVideo.currentTime = 0;
+  journeyTimeline?.kill();
+  bookFloatTween?.kill();
+  enableSoundButton.hidden = true;
+  blockedMedia = undefined;
+  journeyStarted = false;
+  surpriseOpened = false;
+  startButton.disabled = false;
+  startButton.removeAttribute('aria-disabled');
+  startButton.classList.remove('is-activated');
+  birthdayLetter.hidden = true;
+  surpriseReveal.hidden = true;
+  chapterMessage.hidden = true;
+  if (window.gsap) {
+    gsap.set([bookStage, book, bookArtwork, bookTransformation, openPageSpread, pageLight, openingCover, cinematicFrame, surpriseReveal, birthdayLetter, ...pageFlutters, '.opening-copy', startButton], { clearProps: 'all' });
+    gsap.set([bookStage, bookArtwork, '.opening-copy', startButton], { autoAlpha: 1 });
+    gsap.set([bookTransformation, cinematicFrame, surpriseReveal, birthdayLetter], { autoAlpha: 0 });
+  } else {
+    bookStage.style.opacity = '1';
+    bookArtwork.style.opacity = '1';
+    document.querySelector('.opening-copy').style.opacity = '1';
+    startButton.style.opacity = '1';
+    cinematicFrame.style.opacity = '0';
+  }
+  bookFloatTween = window.gsap ? gsap.to(bookStage, { yPercent: 1.5, duration: 4.5, repeat: -1, yoyo: true, ease: 'sine.inOut' }) : undefined;
+}
+
+function restoreLanding() {
+  birthdaySong.pause();
+  birthdaySong.currentTime = 0;
+  if (!window.gsap || reduceMotion) {
+    resetLandingState();
+    return;
+  }
+  gsap.timeline()
+    .to('.letter-copy', { autoAlpha: 0, y: -12, duration: .2, ease: 'power1.in' })
+    .to(parchmentScroll, { scaleX: .08, scaleY: .18, rotationX: 16, autoAlpha: 0, duration: .68, ease: 'power3.in' }, '<.08')
+    .to(birthdayLetter, { autoAlpha: 0, duration: .16, ease: 'none' })
+    .call(resetLandingState);
+}
+
+function setupPremiumButtonMotion() {
+  if (!window.gsap || reduceMotion) return;
+  startButton.addEventListener('pointerenter', () => {
+    if (journeyStarted) return;
+    gsap.to(startButton, { y: -5, scale: 1.025, duration: .28, ease: 'power2.out', overwrite: 'auto' });
+    gsap.to(startButton.querySelector('b'), { x: 3, duration: .28, ease: 'power2.out', overwrite: 'auto' });
+  });
+  startButton.addEventListener('pointerleave', () => {
+    if (journeyStarted) return;
+    gsap.to(startButton, { y: 0, scale: 1, duration: .32, ease: 'power2.out', overwrite: 'auto' });
+    gsap.to(startButton.querySelector('b'), { x: 0, duration: .32, ease: 'power2.out', overwrite: 'auto' });
+  });
+  startButton.addEventListener('pointerdown', () => {
+    if (!journeyStarted) gsap.to(startButton, { y: 2, scale: .985, duration: .1, ease: 'power1.out', overwrite: 'auto' });
+  });
+}
+
+function runOpeningTimeline() {
+  if (!window.gsap || reduceMotion) {
+    scene.classList.add('scene-ready');
+    return;
+  }
+  const timeline = gsap.timeline({ defaults: { ease: 'power2.out' } });
+  timeline
+    .set(['.scene-mark', '.storybook-stage', '.opening-copy', '.journey-button'], { autoAlpha: 0 })
+    .set('.particle', { autoAlpha: 0 })
+    .fromTo('.opening-scene', { backgroundColor: '#030105' }, { backgroundColor: '#10091a', duration: 1.65 })
+    .to('.scene-background', { scale: 1, duration: 3.7, ease: 'power1.out' }, '<')
+    .to('.moon-haze', { opacity: 1, duration: 2.2 }, '<.5')
+    .to('.particle', { autoAlpha: (index) => .28 + (index % 4) * .13, duration: 1.5, stagger: .025 }, '<.65')
+    .to('.storybook-stage', { autoAlpha: 1, yPercent: 4, duration: 1.45 }, '<.4')
+    .fromTo(book, { scale: .91, rotateZ: -7 }, { scale: 1, rotateZ: -3, duration: 1.7, ease: 'power3.out' }, '<.2')
+    .to('.scene-mark', { autoAlpha: 1, duration: .8 }, '<.8')
+    .to('.opening-copy', { autoAlpha: 1, y: 0, duration: .95 }, '<.4')
+    .to('.journey-button', { autoAlpha: 1, y: 0, duration: .6 }, '<.25');
+
+  bookFloatTween = gsap.to(bookStage, { yPercent: 1.5, duration: 4.5, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+}
+
+startButton.addEventListener('click', startJourney);
+storyVideo.addEventListener('ended', showSurpriseReveal);
+openSurpriseButton.addEventListener('click', openBirthdaySurprise);
+closeLetterButton.addEventListener('click', restoreLanding);
+enableSoundButton.addEventListener('click', () => {
+  if (!blockedMedia) return;
+  blockedMedia.muted = false;
+  blockedMedia.volume = 1;
+  blockedMedia.play().then(() => { enableSoundButton.hidden = true; }).catch(() => {});
+});
+setupPremiumButtonMotion();
+
+window.addEventListener('load', runOpeningTimeline);
