@@ -3,106 +3,91 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#090b20" />
-    <title>Teen Patti - Neon Night</title>
+    <meta name="theme-color" content="#10091a" />
+    <meta name="description" content="The opening scene of Her Life Story." />
+    <title>Her Life Story</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="scope.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="birthday-story.css" />
   </head>
   <body>
-    <section class="auth-gate" id="auth-gate">
-      <div class="auth-panel">
-        <a class="brand" href="#"><span class="brand-mark">&#9824;</span><span>teen<span>patti</span></span></a>
-        <span class="eyebrow">NEON NIGHT PARTY</span>
-        <h1>Join the table.</h1>
-        <p>Create a local player account or sign in to continue. This prototype does not send an OTP or store data on a server.</p>
-        <div class="auth-tabs"><button class="auth-tab active" data-auth-mode="login">Sign in</button><button class="auth-tab" data-auth-mode="create">Create account</button></div>
-        <label class="reference-label">MOBILE NUMBER OR EMAIL<input id="auth-identity" placeholder="you@example.com or +91 98765 43210" /></label>
-        <label class="reference-label">DISPLAY NAME<input id="auth-name" maxlength="18" value="Yash" /></label>
-        <button class="primary-btn full" id="send-otp">Continue with OTP <b>&rarr;</b></button>
-        <div class="otp-step" id="otp-step"><label class="reference-label">DEMO OTP<input id="auth-otp" inputmode="numeric" maxlength="6" placeholder="Enter 123456" /></label><button class="primary-btn full" id="verify-otp">Verify &amp; enter <b>&rarr;</b></button></div>
-        <small class="auth-note">Demo OTP: <b>123456</b>. No real authentication is used.</small>
-      </div>
-    </section>
-    <div class="app-shell" id="app-shell">
-      <aside class="sidebar">
-        <a class="brand" href="#home" aria-label="Teen Patti home"><span class="brand-mark">♠</span><span>teen<span>patti</span></span></a>
-        <nav class="main-nav" aria-label="Main navigation">
-          <button class="nav-item active" data-screen="home"><span>⌂</span> Home</button>
-          <button class="nav-item" data-screen="lobby"><span>♣</span> Game lobby</button>
-          <button class="nav-item" data-screen="history"><span>◷</span> My games</button>
-          <button class="nav-item" data-screen="wallet"><span>◈</span> Wallet</button>
-          <button class="nav-item" data-screen="support"><span>?</span> Help & support</button>
-        </nav>
-        <div class="sidebar-bottom">
-          <button class="mini-profile" data-screen="profile"><span class="avatar small">Y</span><span><b id="side-name">Yash</b><small>View profile</small></span><i>›</i></button>
-          <button class="logout" id="reset-app">↻ Reset demo</button>
+    <main class="opening-scene" aria-labelledby="story-title">
+      <div class="scene-background" aria-hidden="true"></div>
+      <div class="scene-wash" aria-hidden="true"></div>
+      <div class="moon-haze" aria-hidden="true"></div>
+      <div class="particle-layer" id="particle-layer" aria-hidden="true"></div>
+      <div class="vignette" aria-hidden="true"></div>
+
+      <header class="scene-mark">
+        <span class="mark-star">✦</span>
+        <span>Her Life Story</span>
+      </header>
+
+      <section class="storybook-stage" aria-label="An antique book introduces her life story">
+        <div class="book-shadow" aria-hidden="true"></div>
+        <div class="book-glow" aria-hidden="true"></div>
+        <article class="storybook storybook-artwork">
+          <img class="book-artwork" src="assets/birthday-story/ornate-book-cover.png" alt="Ornate burgundy storybook cover titled Her Life Story, featuring the approved girl character" />
+        </article>
+        <div class="book-transformation" aria-hidden="true">
+          <div class="page-light"></div>
+          <div class="open-page-spread">
+            <div class="open-page open-page-left"><i></i><i></i><i></i></div>
+            <div class="open-page open-page-right"><i></i><i></i><i></i></div>
+            <div class="page-flutter flutter-one"></div>
+            <div class="page-flutter flutter-two"></div>
+          </div>
+          <div class="opening-cover">
+            <img src="assets/birthday-story/ornate-book-cover.png" alt="" />
+          </div>
         </div>
-      </aside>
+      </section>
 
-      <main>
-        <header class="topbar">
-          <button class="mobile-menu" aria-label="Open menu">☰</button>
-          <div class="welcome"><small id="header-date">MONDAY, 01 SEPTEMBER</small><h2>Ready for a good hand, <span id="header-name">Yash</span>?</h2></div>
-          <div class="top-actions">
-            <button class="balance-chip" data-screen="wallet"><span>◈</span><b id="balance">₹2,450</b><i>+</i></button>
-            <button class="icon-button notification-button" data-screen="notifications" aria-label="Notifications">♢<em id="notice-dot"></em></button>
-            <button class="avatar" data-screen="profile" id="top-avatar">Y</button>
+      <section class="opening-copy">
+        <p class="eyebrow"><span></span> A special journey for <span></span></p>
+        <h1 id="story-title">Someone Very Special</h1>
+        <p class="subtitle">A journey of courage, dreams and beautiful memories.</p>
+      </section>
+
+      <button class="journey-button" id="start-journey" type="button"><span>Start Her Journey</span><b aria-hidden="true">→</b></button>
+      <div class="chapter-message" id="chapter-message" role="status" aria-live="polite" hidden>
+        <span>✦</span> Chapter 1 is beginning...
+      </div>
+      <button class="enable-sound" id="enable-sound" type="button" hidden>Enable Sound</button>
+      <div class="cinematic-frame" id="cinematic-frame" aria-label="Cinematic video frame ready for the next story chapter" role="region">
+        <video class="story-video" id="story-video" playsinline preload="metadata">
+          <source src="assets/birthday-story/Her_Life_Story_Final.mp4" type="video/mp4" />
+        </video>
+        <div class="frame-light" aria-hidden="true"></div>
+      </div>
+      <section class="surprise-reveal" id="surprise-reveal" aria-live="polite" hidden>
+        <div class="surprise-glow" aria-hidden="true"></div>
+        <button class="surprise-button" id="open-surprise" type="button"><span aria-hidden="true">✉</span> Open Your Birthday Surprise</button>
+      </section>
+      <section class="birthday-letter" id="birthday-letter" aria-label="Birthday letter" hidden>
+        <article class="parchment-scroll">
+          <button class="letter-close" id="close-letter" type="button" aria-label="Close birthday letter">×</button>
+          <div class="scroll-roll scroll-roll-top" aria-hidden="true"></div>
+          <div class="scroll-roll scroll-roll-bottom" aria-hidden="true"></div>
+          <div class="letter-copy">
+            <p>Hello Ramandeep,</p>
+            <p>Today is not just another birthday. It is a celebration of you, your beautiful heart, your courage, your dreams, and the incredible journey that has brought you this far.</p>
+            <p>From the little girl with countless dreams to the person you are becoming today, every chapter of your life has its own magic. You have faced challenges, embraced new beginnings, and kept moving forward even when the road was not easy.</p>
+            <p>Never stop believing in yourself. Keep dreaming bigger, keep smiling brighter, and never let the world make you forget how special you are.</p>
+            <p>May this new year of your life bring endless happiness, genuine love, beautiful surprises, new opportunities, and the courage to turn every dream into reality.</p>
+            <p>Remember, your story is still being written, and the most beautiful chapters are yet to come.</p>
+            <p>You deserve all the happiness in the world.</p>
+            <p class="letter-signoff">Happy Birthday! <span>♥</span><br />With lots of love.</p>
           </div>
-        </header>
+        </article>
+      </section>
+      <audio id="birthday-song" preload="metadata">
+        <source src="assets/birthday-story/birthday-surprise-song.mp3" type="audio/mpeg" />
+      </audio>
+    </main>
 
-        <section class="screen active" id="home">
-          <button class="announcement" data-screen="notifications"><span>&#10022;</span><div><b>Weekend tables are live</b><small>New low-stakes and private rooms are available tonight.</small></div><i>View updates &rarr;</i></button>
-          <div class="hero-card">
-            <div class="hero-glow"></div>
-            <div class="hero-copy"><span class="eyebrow live"><i></i> LIVE TABLES NOW OPEN</span><h1>Bring your best<br/><span>game face.</span></h1><p>Find your table, meet the crew, and let the night unfold.</p><button class="primary-btn" data-screen="lobby">Find a table <b>→</b></button></div>
-            <div class="hero-art" aria-hidden="true"><div class="sun"></div><div class="card card-one"><span>A</span><b>♥</b></div><div class="card card-two"><span>K</span><b>♠</b></div><div class="coin-stack">◉<small>PLAY</small></div></div>
-          </div>
-          <div class="section-heading"><div><span class="eyebrow">PLAY NOW</span><h2>Tables waiting for you</h2></div><button class="text-button" data-screen="lobby">See all tables →</button></div>
-          <div class="table-grid" id="featured-tables"></div>
-          <div class="home-bottom">
-            <div class="section-heading"><div><span class="eyebrow">DISCOVER</span><h2>More ways to play</h2></div></div>
-            <div class="mode-grid"><button class="mode-card purple" data-screen="lobby"><span>♠</span><b>Classic Teen Patti</b><small>The game you know & love</small></button><button class="mode-card cyan" data-screen="lobby"><span>♛</span><b>Private table</b><small>Play only with your crew</small></button><button class="mode-card coral" data-screen="lobby"><span>⚡</span><b>Quick play</b><small>Jump in. Cards in seconds.</small></button></div>
-          </div>
-        </section>
-
-        <section class="screen" id="lobby">
-          <div class="page-title"><div><span class="eyebrow">GAME LOBBY</span><h1>Choose your table</h1><p>Every table has its own vibe. Pick your stake and pull up a chair.</p></div><button class="outline-btn" id="create-table">＋ Create private table</button></div>
-          <div class="lobby-controls"><div class="filter-tabs"><button class="filter active" data-filter="all">All tables</button><button class="filter" data-filter="low">Low stakes</button><button class="filter" data-filter="mid">Mid stakes</button><button class="filter" data-filter="private">Private</button></div><label class="search"><span>⌕</span><input id="table-search" placeholder="Search a table" /></label></div>
-          <div class="lobby-grid" id="lobby-tables"></div>
-        </section>
-
-        <section class="screen" id="game">
-          <div class="game-top"><button class="back-button" data-screen="lobby">← Leave table</button><div class="round-info"><span id="round-status">ROUND 08 · ANTE ₹50</span><b id="game-table-name">Midnight Royals</b></div><button class="sound-toggle" id="sound-toggle">♪ Sound on</button></div>
-          <div class="game-table-wrap">
-            <div class="game-table"><div class="felt-pattern"></div><div class="pot"><small>THE POT</small><b id="pot-value">₹450</b><span>♛</span></div><div class="community-message" id="game-message">Your move, Yash.</div>
-              <div class="seat top"><div class="player-card"><span class="avatar orange">A</span><div><b>Aarav</b><small>Blind · ₹1,920</small></div><em class="turn-dot"></em></div><div class="back-cards"><i></i><i></i><i></i></div></div>
-              <div class="seat left"><div class="player-card"><span class="avatar cyan">M</span><div><b>Maya</b><small>Seen · ₹1,480</small></div></div><div class="back-cards"><i></i><i></i><i></i></div></div>
-              <div class="seat right"><div class="player-card"><span class="avatar pink">R</span><div><b>Rohan</b><small>Blind · ₹2,100</small></div></div><div class="back-cards"><i></i><i></i><i></i></div></div>
-              <div class="seat you"><div class="your-cards" id="your-cards"></div><div class="player-card"><span class="avatar">Y</span><div><b>You</b><small id="your-status">Blind · ₹2,450</small></div><em class="turn-dot"></em></div></div>
-            </div>
-          </div>
-          <div class="game-actions" id="game-actions"><button class="game-action fold" id="fold-btn"><span>×</span> Fold</button><button class="game-action see" id="see-btn"><span>◉</span> See cards</button><button class="game-action call" id="call-btn"><span>₹</span> Blind · ₹50</button><button class="game-action raise" id="raise-btn"><span>↑</span> Raise</button></div>
-        </section>
-
-        <section class="screen" id="wallet">
-          <div class="page-title compact"><div><span class="eyebrow">YOUR WALLET</span><h1>Play credits</h1><p>Use credits to join tables and keep the game going.</p></div></div>
-          <div class="wallet-grid"><div class="wallet-card"><span>AVAILABLE BALANCE</span><h2 id="wallet-balance">₹2,450</h2><p>Credits are for this demo only.</p><button class="primary-btn" id="add-credits">Add credits <b>+</b></button></div><div class="wallet-note"><span>✦</span><div><b>Safe, simple payments</b><p>Scan the QR with your payment app. No payment gateway is connected in this prototype.</p></div></div></div>
-          <div class="section-heading transaction-heading"><div><span class="eyebrow">ACTIVITY</span><h2>Recent transactions</h2></div></div><div class="transactions" id="transactions"></div>
-        </section>
-
-        <section class="screen" id="history"><div class="page-title compact"><div><span class="eyebrow">YOUR ACTIVITY</span><h1>My games</h1><p>Every hand tells a story. Here are yours.</p></div></div><div class="stats-row"><div><b id="games-played">12</b><span>Games played</span></div><div><b id="games-won">7</b><span>Tables won</span></div><div><b id="win-rate">58%</b><span>Win rate</span></div></div><div class="history-list" id="history-list"></div></section>
-        <section class="screen" id="notifications"><div class="page-title compact"><div><span class="eyebrow">UPDATES</span><h1>Notifications</h1><p>Stay in the loop with your tables and wallet.</p></div></div><div class="notification-list" id="notification-list"></div></section>
-        <section class="screen" id="profile"><div class="page-title compact"><div><span class="eyebrow">YOUR PROFILE</span><h1>Player card</h1><p>Make this table feel like yours.</p></div></div><div class="profile-card"><span class="avatar large" id="profile-avatar">Y</span><div><label>DISPLAY NAME<input id="profile-name" maxlength="18" value="Yash" /></label><label>FAVOURITE VIBE<select><option>Neon night</option><option>Classic club</option><option>High roller</option></select></label><button class="primary-btn" id="save-profile">Save changes <b>✓</b></button></div></div></section>
-        <section class="screen" id="support"><div class="page-title compact"><div><span class="eyebrow">WE'RE HERE</span><h1>Help & support</h1><p>Quick answers for a smooth game night.</p></div></div><div class="faq"><details open><summary>How do I join a table?</summary><p>Choose a table from the lobby, check its buy-in, then tap join. Credits are kept locally in this prototype.</p></details><details><summary>How does the QR payment work?</summary><p>Tap Add credits and scan the displayed QR. The confirmation action only simulates payment; no money is collected.</p></details><details><summary>Are my winnings real?</summary><p>No. This is a UI-only demo with local game state and demo credits.</p></details></div></section>
-      </main>
-    </div>
-    <div class="modal" id="payment-modal" aria-hidden="true"><div class="modal-card"><button class="modal-close" data-close-modal>×</button><span class="eyebrow">ADD DEMO CREDITS</span><h2>Scan to top up</h2><p>Use any supported payment app. This QR is decorative; no transaction is processed.</p><div class="qr"><div class="qr-art"></div><b>₹500</b></div><label class="reference-label">Payment reference (optional)<input id="payment-reference" placeholder="e.g. UPI123456" /></label><button class="primary-btn full" id="confirm-payment">I've completed payment <b>→</b></button></div></div>
-    <div class="modal" id="private-modal" aria-hidden="true"><div class="modal-card"><button class="modal-close" data-close-modal>×</button><span class="eyebrow">PRIVATE TABLE</span><h2>Start with your crew</h2><p>A local table will be created with a shareable demo code.</p><label class="reference-label">Table name<input id="private-name" value="Yash's Neon Table" /></label><button class="primary-btn full" id="confirm-private">Create table <b>→</b></button></div></div>
-    <div class="modal" id="table-modal" aria-hidden="true"><div class="modal-card"><button class="modal-close" data-close-modal>&times;</button><span class="eyebrow">TABLE DETAILS</span><h2 id="table-detail-name">Midnight Royals</h2><p id="table-detail-copy">For the bold after dark.</p><div class="rules-list"><div><b>Entry</b><span id="table-detail-buyin">&#8377;250</span></div><div><b>Players</b><span id="table-detail-players">5 / 6</span></div><div><b>Rules</b><span>3 cards, blind or seen turns, highest hand wins.</span></div><div><b>Session</b><span>60-second turns, 6 players maximum.</span></div></div><button class="primary-btn full" id="table-modal-join">Join this table <b>&rarr;</b></button></div></div>
-    <div class="toast" id="toast"></div>
-    <script src="app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+    <script src="birthday-story.js" defer></script>
   </body>
 </html>
